@@ -1,5 +1,4 @@
-# Transformer from scratch
-
+# Transformer 
 This is a **Transformer** based **Large Language Model (LLM)** training demo with only _~240 lines of code_.
 
 Inspired by [nanoGPT](https://github.com/karpathy/nanoGPT), I wrote this demo to show how to train a LLM from scratch using PyTorch. 
@@ -83,10 +82,6 @@ This notebook prints out the intermediate results of each step followed by Trans
 
 Under `/GPT2` directory, I put some sample code to show how to fine-tune a pre-trained GPT2 model, as well as inference from it.
 
-
-# If you want to dive deeper
-
-As if you're new to LLM, I recommend you to read my blog post [Transformer Architecture: LLM From Zero-to-Hero](https://medium.com/@waylandzhang/transformer-architecture-llms-zero-to-hero-98b1ee51a838) , which breaks down the concepts of a Transformer architecture.
 
 ### References
 
