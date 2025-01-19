@@ -85,6 +85,7 @@ Under `/GPT2` directory, I put some sample code to show how to fine-tune a pre-t
 
 ### References
 
+- [Transformer Architecture: LLM From Zero-to-Hero](https://medium.com/@waylandzhang/transformer-architecture-llms-zero-to-hero-98b1ee51a838) - 
 - [nanoGPT](https://github.com/karpathy/nanoGPT) Andrej Karpathy's famous video tutorial on how to build a GPT model from scratch.
 - [Transformers from Scratch](https://blog.matdmiller.com/posts/2023-06-10_transformers/notebook.html) A clear and easy implementation of Andrej's video contents by Mat Miller.
 - [Attention is all you need](https://arxiv.org/abs/1706.03762) The original paper of Transformer architecture.
