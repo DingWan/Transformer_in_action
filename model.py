@@ -5,21 +5,27 @@ import tiktoken
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
+import torch.optim as optim
 
 # Hyperparameters
 batch_size = 4  # How many batches per training step
-context_length = 16  # Length of the token chunk each batch
-d_model = 64  # The size of our model token embeddings
+context_length = 256  # Length of the token chunk each batch
+d_model = 128  # The size of our model token embeddings
 num_blocks = 8  # Number of transformer blocks
-num_heads = 4  # Number of heads in Multi-head attention
+num_heads = 8  # Number of heads in Multi-head attention
 learning_rate = 1e-3  # 0.001
 dropout = 0.1  # Dropout rate
 max_iters = 5000  # Total of training iterations <- Change this to smaller number for testing
 eval_interval = 50  # How often to evaluate
-eval_iters = 20  # Number of iterations to average for evaluation
+eval_iters = 20  # Number of iterations to average for evaluation，每次取20次迭代值做平均，评估模型是否达到要求
 device = 'cuda' if torch.cuda.is_available() else 'cpu'  # Use GPU if it's available.
 TORCH_SEED = 1337
 torch.manual_seed(TORCH_SEED)
+
+# 提前停止参数， add by Wan 
+early_stopping_patience = 20
+best_val_loss = float('inf')
+patience_counter = 0
 
 # Load training data
 if not os.path.exists('data/sales_textbook.txt'):
@@ -233,8 +239,11 @@ def estimate_loss():
     return out
 
 
-# Use AdamW optimizer
-optimizer = torch.optim.AdamW(params=model.parameters(), lr=learning_rate)
+# Use AdamW optimizer 
+# 定义优化器和学习率调度器, add by Wan
+optimizer = torch.optim.AdamW(params=model.parameters(), lr=learning_rate, weight_decay=1e-4)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.5)
+
 tracked_losses = list()
 for step in range(max_iters):
     if step % eval_iters == 0 or step == max_iters - 1:
@@ -242,6 +251,21 @@ for step in range(max_iters):
         tracked_losses.append(losses)
         print('Step:', step, 'Training Loss:', round(losses['train'].item(), 3), 'Validation Loss:',
               round(losses['valid'].item(), 3))
+        
+        # 学习率调度器 add by Wan
+        scheduler.step(losses['valid'])
+        
+        if losses['valid'] < best_val_loss:
+            best_val_loss = losses['valid']
+            patience_counter = 0
+            torch.save(model.state_dict(), 'best-model-ckpt.pt')
+        else:
+            patience_counter += 1
+            print('patience_counter:', patience_counter)
+        
+        if patience_counter >= early_stopping_patience:
+            print("Early stopping triggered")
+            break
 
     xb, yb = get_batch('train')
     logits, loss = model(xb, yb)
