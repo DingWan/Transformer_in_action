@@ -7,7 +7,7 @@ import pickle
 from contextlib import nullcontext
 import torch
 import tiktoken
-from aim import Run
+#from aim import Run
 from model import Model
 import json
 

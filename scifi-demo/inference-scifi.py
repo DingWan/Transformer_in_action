@@ -27,7 +27,10 @@ model.eval()
 model.to(device)
 
 # start = 'Write a short story about Sam Altman.'
-start = 'Sam Altman was born in'
+# start = 'Sam Altman was born in'
+
+start = '如果有一天'
+
 start_ids = encoding.encode(start)
 x = (torch.tensor(start_ids, dtype=torch.long, device=device)[None, ...])
 

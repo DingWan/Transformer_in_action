@@ -14,7 +14,7 @@ d_model = 128  # The size of our model token embeddings
 num_blocks = 8  # Number of transformer blocks
 num_heads = 8  # Number of heads in Multi-head attention
 learning_rate = 1e-3  # 0.001
-dropout = 0.1  # Dropout rate
+dropout = 0.5  # Dropout rate
 max_iters = 5000  # Total of training iterations <- Change this to smaller number for testing
 eval_interval = 50  # How often to evaluate
 eval_iters = 20  # Number of iterations to average for evaluation，每次取20次迭代值做平均，评估模型是否达到要求
@@ -33,14 +33,25 @@ if not os.path.exists('data/sales_textbook.txt'):
     with open('data/sales_textbook.txt', 'w') as f:
         f.write(requests.get(url).text)
 
+# 准备训练数据: sales_textbook.txt
 with open('data/sales_textbook.txt', 'r', encoding='utf-8') as f:
-    text = f.read()
+    text_sales_textbook = f.read()
+# 准备训练数据, scifi.txt
+with open('data/scifi.txt', 'r', encoding="utf-8") as file:
+    text_scifi = file.read()
+
+# 选择训练数据
+text = text_scifi
 
 # Using TikToken (Same as GPT3) to tokenize the source text
 encoding = tiktoken.get_encoding("cl100k_base")
 tokenized_text = encoding.encode(text)
 max_token_value = max(tokenized_text) + 1  # the maximum value of the tokenized numbers
 tokenized_text = torch.tensor(tokenized_text, dtype=torch.long, device=device)  # put tokenized text into tensor
+ 
+total_tokens = encoding.encode_ordinary(text)
+print(f"数据集合计有 {len(total_tokens):,} tokens")
+print(f"数据集最大token值是 {max_token_value}")
 
 # Split train and validation
 split_idx = int(len(tokenized_text) * 0.9)
@@ -238,9 +249,7 @@ def estimate_loss():
     model.train()
     return out
 
-
-# Use AdamW optimizer 
-# 定义优化器和学习率调度器, add by Wan
+# Use AdamW optimizer，# 定义优化器和学习率调度器, add by Wan
 optimizer = torch.optim.AdamW(params=model.parameters(), lr=learning_rate, weight_decay=1e-4)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.5)
 
@@ -278,7 +287,10 @@ torch.save(model.state_dict(), 'model-ckpt.pt')
 
 # Generate
 model.eval()
-start = 'The salesperson'
+start_sales_textbook = 'The salesperson'
+start_scifi = '如果有一天'
+
+start = start_scifi
 start_ids = encoding.encode(start)
 x = (torch.tensor(start_ids, dtype=torch.long, device=device)[None, ...])
 y = model.generate(x, max_new_tokens=100)
